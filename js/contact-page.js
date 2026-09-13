@@ -26,16 +26,20 @@ testiData.forEach(t=>{
 
 /* ---------- Social row ---------- */
 const socials = [
-  {label:'WhatsApp', handle:'+233 (506) 084 942'},
-  {label:'Email', handle:'crimsonwrld122@gmail.com'},
-  {label:'Instagram', handle:'@crimson.studio'},
-  {label:'Facebook', handle:'/crimsonstudio'},
-  {label:'TikTok', handle:'@crimson_wrld0'},
+  {label:'WhatsApp', handle:'+233 506 084 942', href:'https://wa.me/233506084942', external:true},
+  {label:'Email', handle:'crimsonwrld122@gmail.com', href:'mailto:crimsonwrld122@gmail.com', external:false},
+  {label:'Instagram', handle:'@Crimson_wrld', href:'https://www.instagram.com/Crimson_wrld', external:true},
+  {label:'Facebook', handle:'Crimson studio', href:'https://www.facebook.com/profile.php?id=61593715563813&mibextid=wwXlfr', external:true},
+  {label:'TikTok', handle:'@crimson_wrld0', href:'https://www.tiktok.com/@crimson_wrld0', external:true},
 ];
 const socialRow = document.getElementById('socialRow');
 socials.forEach(s=>{
   const a = document.createElement('a');
-  a.href = '#';
+  a.href = s.href;
+  if(s.external){
+    a.target = '_blank';
+    a.rel = 'noopener noreferrer';
+  }
   a.innerHTML = `<span>${s.label}<br><span class="handle">${s.handle}</span></span><span class="arrow">↗</span>`;
   socialRow.appendChild(a);
 });
