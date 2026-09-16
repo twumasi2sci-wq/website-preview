@@ -1,0 +1,270 @@
+/* =========================================================
+   CRIMSON — Start a Project submission animation
+   Loaded only on the Start a Project page.
+   ========================================================= */
+
+/* ---------------- Overlay ---------------- */
+.submit-overlay{
+  position:fixed; inset:0; z-index:500;
+  background:rgba(6,6,8,0.94);
+  backdrop-filter:blur(8px);
+  display:flex; align-items:center; justify-content:center;
+  padding:24px;
+  opacity:0; pointer-events:none;
+  transition:opacity 0.3s ease;
+}
+.submit-overlay.open{opacity:1; pointer-events:auto;}
+
+.submit-stage{
+  width:100%;
+  max-width:440px;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  text-align:center;
+}
+
+/* ---------------- Envelope scene ---------------- */
+.env-scene{
+  position:relative;
+  width:180px;
+  height:130px;
+  margin-bottom:8px;
+  perspective:600px;
+}
+
+/* Document */
+.env-doc{
+  position:absolute;
+  left:50%; top:50%;
+  width:110px; height:76px;
+  margin-left:-55px; margin-top:-70px;
+  background:var(--white);
+  border-radius:4px;
+  box-shadow:0 10px 26px rgba(0,0,0,0.35);
+  padding:12px 10px;
+  opacity:0;
+  transform:translateY(30px) scale(0.85);
+  z-index:3;
+}
+.env-doc-line{
+  height:4px; border-radius:2px;
+  background:rgba(10,10,12,0.16);
+  margin-bottom:7px;
+}
+.env-doc-line.l1{background:var(--crimson); width:55%;}
+.env-doc-line.l4.short{width:40%;}
+
+/* Envelope */
+.env-envelope{
+  position:absolute;
+  left:50%; top:50%;
+  width:150px; height:98px;
+  margin-left:-75px; margin-top:-49px;
+  z-index:2;
+  opacity:0;
+  transform:translateY(6px) scale(0.96);
+}
+.env-body{
+  position:absolute; inset:0;
+  background:var(--bg-card);
+  border:1px solid var(--line-bright);
+  border-radius:6px;
+  box-shadow:0 16px 34px rgba(0,0,0,0.4);
+}
+.env-flap{
+  position:absolute;
+  top:0; left:0; right:0;
+  height:52px;
+  background:linear-gradient(155deg, var(--crimson), #7a0c1e);
+  clip-path:polygon(0 0, 100% 0, 50% 100%);
+  transform-origin:top center;
+  transform:rotateX(180deg);
+  border-radius:6px 6px 0 0;
+}
+
+/* Torn halves (failure only) */
+.env-half{
+  position:absolute; top:0; width:50%; height:100%;
+  background:var(--bg-card);
+  border:1px solid var(--line-bright);
+  opacity:0;
+  z-index:4;
+}
+.env-half.left{
+  left:0;
+  clip-path:polygon(0 0, 100% 0, 82% 30%, 100% 55%, 78% 78%, 100% 100%, 0 100%);
+  border-right:none;
+  border-radius:6px 0 0 6px;
+}
+.env-half.right{
+  right:0;
+  clip-path:polygon(18% 0, 100% 0, 100% 100%, 0 100%, 22% 78%, 0 55%, 18% 30%);
+  border-left:none;
+  border-radius:0 6px 6px 0;
+}
+
+/* Checkmark */
+.env-checkmark{
+  position:absolute; left:50%; top:50%;
+  width:64px; height:64px;
+  margin-left:-32px; margin-top:-32px;
+  z-index:5;
+  opacity:0;
+  transform:scale(0.7);
+}
+.env-checkmark svg{width:100%; height:100%;}
+.env-checkmark circle{
+  stroke:var(--crimson-bright);
+  stroke-width:2.5;
+  stroke-dasharray:151;
+  stroke-dashoffset:151;
+}
+.env-checkmark path{
+  stroke:var(--crimson-bright);
+  stroke-width:3;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+  stroke-dasharray:38;
+  stroke-dashoffset:38;
+}
+
+/* ---------------- Phase animations (JS toggles these classes on #envScene) ---------------- */
+.env-scene.play-doc .env-doc{
+  animation:envDocIn 0.6s ease forwards;
+}
+.env-scene.play-pack .env-doc{
+  animation:envDocIntoEnvelope 0.7s ease forwards;
+}
+.env-scene.play-pack .env-envelope{
+  animation:envAppear 0.5s ease forwards;
+}
+.env-scene.play-seal .env-flap{
+  animation:envFlapClose 0.55s cubic-bezier(.3,.1,.3,1) forwards;
+}
+.env-scene.play-wait .env-envelope{
+  animation:envPulse 1.6s ease-in-out infinite;
+}
+
+.env-scene.play-success .env-envelope{
+  animation:envFlyAway 0.75s cubic-bezier(.4,0,.2,1) forwards;
+}
+.env-scene.play-success .env-checkmark{
+  animation:envCheckIn 0.5s ease 0.55s forwards;
+}
+.env-scene.play-success .env-checkmark circle{
+  animation:envCheckCircle 0.5s ease 0.55s forwards;
+}
+.env-scene.play-success .env-checkmark path{
+  animation:envCheckTick 0.35s ease 0.9s forwards;
+}
+
+.env-scene.play-fail .env-envelope{
+  animation:envShake 0.4s ease forwards;
+}
+.env-scene.play-fail .env-half{
+  animation:envTearApart 0.65s ease 0.4s forwards;
+}
+.env-scene.play-fail .env-half.left{animation-name:envTearApartLeft;}
+.env-scene.play-fail .env-half.right{animation-name:envTearApartRight;}
+.env-scene.play-fail .env-flap{
+  animation:envFlapPop 0.3s ease forwards;
+}
+
+@keyframes envDocIn{
+  from{opacity:0; transform:translateY(30px) scale(0.85);}
+  to{opacity:1; transform:translateY(0) scale(1);}
+}
+@keyframes envAppear{
+  from{opacity:0; transform:translateY(6px) scale(0.96);}
+  to{opacity:1; transform:translateY(0) scale(1);}
+}
+@keyframes envDocIntoEnvelope{
+  from{opacity:1; transform:translateY(0) scale(1);}
+  to{opacity:0; transform:translateY(38px) scale(0.5);}
+}
+@keyframes envFlapClose{
+  from{transform:rotateX(180deg);}
+  to{transform:rotateX(0deg);}
+}
+@keyframes envPulse{
+  0%, 100%{box-shadow:0 0 0 0 rgba(200,16,46,0.0); filter:brightness(1);}
+  50%{filter:brightness(1.08);}
+}
+@keyframes envFlyAway{
+  0%{opacity:1; transform:translateY(0) translateX(0) scale(1) rotate(0deg);}
+  100%{opacity:0; transform:translateY(-70px) translateX(90px) scale(0.4) rotate(14deg);}
+}
+@keyframes envCheckIn{
+  from{opacity:0; transform:scale(0.7);}
+  to{opacity:1; transform:scale(1);}
+}
+@keyframes envCheckCircle{
+  to{stroke-dashoffset:0;}
+}
+@keyframes envCheckTick{
+  to{stroke-dashoffset:0;}
+}
+@keyframes envShake{
+  0%, 100%{transform:translateX(0);}
+  20%{transform:translateX(-6px);}
+  40%{transform:translateX(5px);}
+  60%{transform:translateX(-4px);}
+  80%{transform:translateX(3px);}
+}
+@keyframes envFlapPop{
+  from{transform:rotateX(0deg);}
+  to{transform:rotateX(40deg);}
+}
+@keyframes envTearApartLeft{
+  from{opacity:1; transform:translateX(0) rotate(0deg);}
+  to{opacity:0; transform:translateX(-34px) translateY(14px) rotate(-18deg);}
+}
+@keyframes envTearApartRight{
+  from{opacity:1; transform:translateX(0) rotate(0deg);}
+  to{opacity:0; transform:translateX(34px) translateY(18px) rotate(16deg);}
+}
+
+/* ---------------- Result panel ---------------- */
+.submit-result{
+  opacity:0;
+  transform:translateY(8px);
+  transition:opacity 0.4s ease, transform 0.4s ease;
+  pointer-events:none;
+}
+.submit-result.show{
+  opacity:1;
+  transform:translateY(0);
+  pointer-events:auto;
+}
+.submit-result-title{
+  font-family:'Unbounded',sans-serif;
+  font-weight:700;
+  font-size:clamp(20px,3vw,26px);
+  margin-bottom:10px;
+}
+.submit-result-title.is-success{color:var(--white);}
+.submit-result-title.is-fail{color:var(--white);}
+.submit-result-msg{
+  color:var(--text-soft);
+  font-size:14.5px;
+  line-height:1.6;
+  max-width:360px;
+  margin:0 auto 26px;
+}
+.submit-result-actions{display:flex; gap:14px; justify-content:center; flex-wrap:wrap;}
+
+/* ---------------- Reduced motion ---------------- */
+@media (prefers-reduced-motion: reduce){
+  .env-scene *{animation-duration:0.001ms !important; animation-delay:0ms !important;}
+  .submit-overlay{transition:none;}
+  .submit-result{transition:none;}
+}
+
+/* ---------------- Responsive ---------------- */
+@media (max-width:480px){
+  .env-scene{width:150px; height:110px; margin-bottom:4px;}
+  .env-doc{width:92px; height:64px; margin-left:-46px; margin-top:-58px;}
+  .env-envelope{width:126px; height:82px; margin-left:-63px; margin-top:-41px;}
+  .env-checkmark{width:54px; height:54px; margin-left:-27px; margin-top:-27px;}
+}

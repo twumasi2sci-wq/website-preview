@@ -1,7 +1,12 @@
 /* =========================================================
    CRIMSON — Start a Project page script
-   Self-contained: mobile menu, form validation, Netlify Forms
-   AJAX submit with duplicate-submission guard.
+   Mobile menu, form validation, Netlify Forms AJAX submit,
+   and the envelope submission animation.
+
+   IMPORTANT: the animation's SUCCESS/FAILURE branch only ever
+   fires after the real fetch() to Netlify resolves. Clicking
+   the button only starts the neutral "packing the letter"
+   motion — it never claims an outcome on its own.
    ========================================================= */
 
 /* ---------- Mobile menu ---------- */
@@ -13,16 +18,14 @@ mobileClose.addEventListener('click', ()=>mobileMenu.classList.remove('open'));
 mobileMenu.querySelectorAll('a').forEach(a=>a.addEventListener('click', ()=>mobileMenu.classList.remove('open')));
 document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && mobileMenu.classList.contains('open')) mobileMenu.classList.remove('open'); });
 
-/* ---------- Form: validation + Netlify Forms AJAX submit ---------- */
+/* ---------- Form: validation ---------- */
 const startProjectForm = document.getElementById('startProjectForm');
 const spSubmitBtn = document.getElementById('spSubmitBtn');
-const spFormSuccess = document.getElementById('spFormSuccess');
-const spFormError = document.getElementById('spFormError');
+const spSrAnnounce = document.getElementById('spSrAnnounce');
 
 function encodeFormData(form){
   return new URLSearchParams(new FormData(form)).toString();
 }
-
 function fieldWrap(input){
   return input.closest('div');
 }
@@ -64,14 +67,103 @@ function validateStartProjectForm(){
   el.addEventListener('change', ()=>setInvalid(el, false));
 });
 
+/* ---------- Envelope animation elements ---------- */
+const submitOverlay = document.getElementById('submitOverlay');
+const envScene = document.getElementById('envScene');
+const submitResult = document.getElementById('submitResult');
+const submitResultTitle = document.getElementById('submitResultTitle');
+const submitResultMsg = document.getElementById('submitResultMsg');
+const submitAgainBtn = document.getElementById('submitAgainBtn');
+const submitTryAgainBtn = document.getElementById('submitTryAgainBtn');
+
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// Timing offsets (ms) for each phase class getting added to #envScene.
+// Reduced-motion users get the same sequence compressed way down, since the
+// CSS media query already collapses each individual keyframe to ~instant.
+const T = reduceMotion
+  ? {doc:0, pack:60, seal:120, wait:180, successReveal:260, failReveal:260}
+  : {doc:20, pack:620, seal:1320, wait:1870, successReveal:1300, failReveal:1080};
+
+let sceneTimers = [];
+function clearSceneTimers(){
+  sceneTimers.forEach(t=>clearTimeout(t));
+  sceneTimers = [];
+}
+function resetScene(){
+  clearSceneTimers();
+  envScene.className = 'env-scene';
+}
+
+function openOverlay(){
+  submitOverlay.classList.add('open');
+  submitOverlay.setAttribute('aria-hidden', 'false');
+}
+function closeOverlay(){
+  submitOverlay.classList.remove('open');
+  submitOverlay.setAttribute('aria-hidden', 'true');
+  submitResult.classList.remove('show');
+  resetScene();
+}
+
+function showResult(ok){
+  submitResultTitle.textContent = ok ? 'PROJECT REQUEST SENT' : 'PROJECT REQUEST FAILED';
+  submitResultTitle.className = 'submit-result-title ' + (ok ? 'is-success' : 'is-fail');
+  submitResultMsg.textContent = ok
+    ? "Thank you! Your project request has been sent successfully. We'll get back to you soon."
+    : "Something went wrong. Please try again or contact us directly.";
+  submitAgainBtn.style.display = ok ? 'inline-flex' : 'none';
+  submitTryAgainBtn.style.display = ok ? 'none' : 'inline-flex';
+  submitResult.classList.add('show');
+  (ok ? submitAgainBtn : submitTryAgainBtn).focus();
+}
+
+/* Plays the neutral "packing the letter" sequence, then waits for
+   resultPromise — a Promise<boolean> that only resolves once the real
+   Netlify response is known — before branching into success or failure. */
+function playSubmissionAnimation(resultPromise){
+  openOverlay();
+  resetScene();
+
+  sceneTimers.push(setTimeout(()=> envScene.classList.add('play-doc'), T.doc));
+  sceneTimers.push(setTimeout(()=> envScene.classList.add('play-pack'), T.pack));
+  sceneTimers.push(setTimeout(()=> envScene.classList.add('play-seal'), T.seal));
+
+  sceneTimers.push(setTimeout(async ()=>{
+    envScene.classList.add('play-wait');
+    const waitStarted = Date.now();
+    const minWaitMs = reduceMotion ? 40 : 350;
+
+    let ok;
+    try{
+      ok = await resultPromise; // <-- only resolves once the real request finishes
+    } catch(_e){
+      ok = false;
+    }
+
+    const elapsed = Date.now() - waitStarted;
+    const extra = Math.max(0, minWaitMs - elapsed);
+
+    sceneTimers.push(setTimeout(()=>{
+      envScene.classList.remove('play-wait');
+      if(ok){
+        envScene.classList.add('play-success');
+        spSrAnnounce.textContent = "Thank you! Your project request has been sent successfully. We'll get back to you soon.";
+        sceneTimers.push(setTimeout(()=> showResult(true), T.successReveal));
+      } else {
+        envScene.classList.add('play-fail');
+        spSrAnnounce.textContent = 'Something went wrong. Please try again or contact us directly.';
+        sceneTimers.push(setTimeout(()=> showResult(false), T.failReveal));
+      }
+    }, extra));
+  }, T.wait));
+}
+
+/* ---------- Submit handler ---------- */
 startProjectForm.addEventListener('submit', function(e){
   e.preventDefault();
 
   // Guard against duplicate submissions while a request is in flight
   if(spSubmitBtn.disabled) return;
-
-  spFormSuccess.classList.remove('show');
-  spFormError.classList.remove('show');
 
   if(!validateStartProjectForm()){
     const firstInvalid = startProjectForm.querySelector('.invalid input, .invalid select, .invalid textarea');
@@ -81,22 +173,34 @@ startProjectForm.addEventListener('submit', function(e){
 
   spSubmitBtn.disabled = true;
   spSubmitBtn.textContent = 'Sending…';
+  spSrAnnounce.textContent = 'Sending your project request…';
 
-  fetch('/', {
+  // The real, actual Netlify Forms submission — its outcome is the only
+  // thing that ever decides which animation branch plays.
+  const resultPromise = fetch('/', {
     method: 'POST',
     headers: {'Content-Type': 'application/x-www-form-urlencoded'},
     body: encodeFormData(startProjectForm)
-  })
-  .then((res)=>{
-    if(!res.ok) throw new Error('Network response was not ok');
-    spFormSuccess.classList.add('show');
-    startProjectForm.reset();
-  })
-  .catch(()=>{
-    spFormError.classList.add('show');
-  })
-  .finally(()=>{
-    spSubmitBtn.disabled = false;
-    spSubmitBtn.textContent = 'Send Project Request';
-  });
+  }).then((res)=> res.ok).catch(()=> false);
+
+  playSubmissionAnimation(resultPromise);
+});
+
+/* ---------- Result actions ---------- */
+submitAgainBtn.addEventListener('click', ()=>{
+  closeOverlay();
+  startProjectForm.reset();
+  spSubmitBtn.disabled = false;
+  spSubmitBtn.textContent = 'Send Project Request';
+  spSrAnnounce.textContent = '';
+  document.getElementById('sp-name').focus();
+});
+
+submitTryAgainBtn.addEventListener('click', ()=>{
+  closeOverlay();
+  // Form fields are intentionally left exactly as the visitor entered them.
+  spSubmitBtn.disabled = false;
+  spSubmitBtn.textContent = 'Send Project Request';
+  spSrAnnounce.textContent = '';
+  document.getElementById('sp-name').focus();
 });
