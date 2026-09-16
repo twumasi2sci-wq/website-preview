@@ -147,6 +147,16 @@
   .mobile-menu .nav-cta{margin-top:12px;}
   .mobile-close{position:absolute; top:26px; right:28px; background:none; border:none; color:var(--white); font-size:28px; cursor:pointer;}
 
+  /* ---------------- Shared page background (About/Services/Portfolio/Contact) ---------------- */
+  /* Reuses the exact .hero-bg / .hero-grid-lines / .hero-particles look from the Home hero,
+     as a fixed full-page layer so non-hero pages match the Home background. */
+  .page-bg{
+    position:fixed;
+    inset:0;
+    z-index:-1;
+    overflow:hidden;
+  }
+
   /* ---------------- Hero ---------------- */
   .hero{
     position:relative;
