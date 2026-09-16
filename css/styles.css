@@ -278,6 +278,7 @@
     border:1px solid var(--line-bright);
     border-radius:4px;
     pointer-events:none;
+    z-index:2;
   }
   .about-visual .logo-glow{
     position:absolute;
@@ -288,14 +289,16 @@
     pointer-events:none;
   }
   .about-visual .brand-logo{
-    position:relative;
+    position:absolute;
+    inset:0;
     z-index:1;
-    max-width:60%;
-    max-height:68%;
-    width:auto;
-    height:auto;
-    object-fit:contain;
-    filter:drop-shadow(0 24px 44px rgba(0,0,0,0.5)) drop-shadow(0 0 34px rgba(200,16,46,0.18));
+    width:100%;
+    height:100%;
+    max-width:none;
+    max-height:none;
+    object-fit:cover;
+    object-position:center;
+    display:block;
   }
   .about-visual .studio-tag{
     position:absolute; top:28px; left:28px; z-index:2;
@@ -304,11 +307,9 @@
   }
   @media (max-width:860px){
     .about-visual{padding:52px 36px;}
-    .about-visual .brand-logo{max-width:56%; max-height:64%;}
   }
   @media (max-width:520px){
     .about-visual{padding:40px 28px;}
-    .about-visual .brand-logo{max-width:62%; max-height:60%;}
     .about-visual .logo-glow{width:82%;}
   }
   .about-body p{color:var(--text-soft); font-size:16px; margin-bottom:20px; max-width:520px;}
