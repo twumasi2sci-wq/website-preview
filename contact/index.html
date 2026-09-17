@@ -98,43 +98,12 @@
               <input id="f-brand" name="company" type="text" placeholder="Your brand name (optional)" autocomplete="organization">
             </div>
           </div>
-          <div class="form-row">
-            <div>
-              <label for="f-type">Project Type</label>
-              <select id="f-type" name="project-type" required aria-describedby="err-type">
-                <option value="" disabled selected>Select a project type</option>
-                <option>Graphic Design</option>
-                <option>Logo Design</option>
-                <option>Brand Identity</option>
-                <option>Social Media Design</option>
-                <option>Packing design</option>
-                <option>Clothing Branding</option>
-                <option>Motion Graphics</option>
-                <option>Website Design</option>
-                <option>Other</option>
-              </select>
-              <span class="field-error" id="err-type">Please select a project type.</span>
-            </div>
-            <div>
-              <label for="f-budget">Budget</label>
-              <select id="f-budget" name="budget" required aria-describedby="err-budget">
-                <option value="" disabled selected>Select a budget range</option>
-                <option>Under $100</option>
-                <option>$100 – $250</option>
-                <option>$250 – $500</option>
-                <option>$500 – $1,000</option>
-                <option>$1,000+</option>
-                <option>Not sure yet</option>
-              </select>
-              <span class="field-error" id="err-budget">Please select a budget range.</span>
-            </div>
-          </div>
           <div>
-            <label for="f-desc">Project Details / Message</label>
-            <textarea id="f-desc" name="message" placeholder="Tell us about your brand, goals, timeline, and anything else that helps us understand the project." required aria-describedby="err-message"></textarea>
-            <span class="field-error" id="err-message">Please add a few details about your project.</span>
+            <label for="f-desc">Message</label>
+            <textarea id="f-desc" name="message" placeholder="Tell us a bit about what you're reaching out for." required aria-describedby="err-message"></textarea>
+            <span class="field-error" id="err-message">Please add a short message.</span>
           </div>
-          <button type="submit" class="submit-btn" id="submitBtn">Send Project Request</button>
+          <button type="submit" class="submit-btn" id="submitBtn">Send Message</button>
           <div class="form-success" id="formSuccess" role="status">✓ Thank you! Your project request has been sent successfully. We'll get back to you soon.</div>
           <div class="form-error-banner" id="formError" role="alert">⚠ Something went wrong. Please try again or contact us directly.</div>
         </form>

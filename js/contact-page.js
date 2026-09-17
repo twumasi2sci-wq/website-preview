@@ -77,19 +77,13 @@ function validateForm(){
   const phonePattern = /^[0-9+()\-\s]{7,20}$/;
   if(phone.value.trim().length > 0 && !phonePattern.test(phone.value.trim())){ setInvalid(phone, true); valid = false; } else setInvalid(phone, false);
 
-  const type = document.getElementById('f-type');
-  if(!type.value){ setInvalid(type, true); valid = false; } else setInvalid(type, false);
-
-  const budget = document.getElementById('f-budget');
-  if(!budget.value){ setInvalid(budget, true); valid = false; } else setInvalid(budget, false);
-
   const message = document.getElementById('f-desc');
   if(message.value.trim().length < 5){ setInvalid(message, true); valid = false; } else setInvalid(message, false);
 
   return valid;
 }
 
-['f-name','f-email','f-phone','f-type','f-budget','f-desc'].forEach(id=>{
+['f-name','f-email','f-phone','f-desc'].forEach(id=>{
   const el = document.getElementById(id);
   el.addEventListener('input', ()=>setInvalid(el, false));
   el.addEventListener('change', ()=>setInvalid(el, false));
@@ -128,7 +122,7 @@ projectForm.addEventListener('submit', function(e){
   })
   .finally(()=>{
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Send Project Request';
+    submitBtn.textContent = 'Send Message';
   });
 });
 
