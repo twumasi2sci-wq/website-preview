@@ -242,3 +242,213 @@
   .ph-lightbox-stage{max-height:70vh;}
   .ph-lightbox-stage img{max-height:70vh;}
 }
+
+/* =========================================================
+   Start a Project — submission animation
+   Fires only from the real Netlify Forms fetch() result in
+   js/start-a-project.js. Purely additive: does not alter the
+   existing form fields, layout, or the .form-success /
+   .form-error-banner elements, which still update as before.
+   ========================================================= */
+.submit-overlay{
+  position:fixed;
+  inset:0;
+  z-index:500;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:24px;
+  background:rgba(6,6,8,0.86);
+  backdrop-filter:blur(6px);
+  opacity:0;
+  visibility:hidden;
+  transition:opacity 0.25s ease, visibility 0s linear 0.25s;
+  overflow:hidden;
+}
+.submit-overlay.open{
+  opacity:1;
+  visibility:visible;
+  transition:opacity 0.25s ease;
+}
+.submit-panel{
+  position:relative;
+  width:100%;
+  max-width:420px;
+  background:linear-gradient(160deg, var(--bg-card), var(--bg-raised));
+  border:1px solid var(--line-bright);
+  border-radius:var(--radius);
+  padding:40px 28px 32px;
+  text-align:center;
+  box-shadow:0 30px 80px rgba(0,0,0,0.55);
+}
+
+/* ---- Mail animation stage ---- */
+.mail-anim{
+  position:relative;
+  height:150px;
+  margin:0 auto 22px;
+}
+.mail-doc{
+  position:absolute;
+  left:50%; top:50%;
+  width:74px; height:96px;
+  background:var(--white);
+  border-radius:4px;
+  padding:14px 10px;
+  transform:translate(-50%,-50%) scale(0);
+  opacity:0;
+  box-shadow:0 10px 24px rgba(0,0,0,0.35);
+  z-index:2;
+  transition:transform 0.45s cubic-bezier(.2,.8,.3,1.2), opacity 0.35s ease;
+}
+.mail-doc-line{
+  display:block;
+  height:5px;
+  border-radius:2px;
+  background:#D8D5CE;
+  margin-bottom:8px;
+}
+.mail-doc-line.short{width:60%; margin-bottom:0;}
+
+.mail-envelope{
+  position:absolute; left:50%; top:50%;
+  width:120px; height:80px;
+  transform:translate(-50%,-50%) scale(0.9);
+  opacity:0;
+  transition:transform 0.4s ease, opacity 0.35s ease;
+  z-index:1;
+  filter:drop-shadow(0 14px 26px rgba(0,0,0,0.4));
+}
+.envelope-svg{width:100%; height:100%; display:block; overflow:visible;}
+.env-body{fill:var(--bg-card); stroke:var(--crimson-bright); stroke-width:2;}
+.env-flap-open{fill:none; stroke:var(--crimson-bright); stroke-width:2; opacity:1; transition:opacity 0.3s ease;}
+.env-flap-sealed{fill:var(--bg-raised); stroke:var(--crimson-bright); stroke-width:2; opacity:0; transition:opacity 0.3s ease;}
+.env-seal{fill:var(--crimson); opacity:0; transition:opacity 0.3s ease 0.15s;}
+
+.mail-torn{
+  position:absolute; left:50%; top:50%;
+  width:120px; height:80px;
+  transform:translate(-50%,-50%);
+  opacity:0;
+  pointer-events:none;
+  z-index:1;
+}
+.torn-piece{
+  position:absolute; top:0; width:50%; height:100%;
+  background:var(--bg-card);
+  border:2px solid #E8A93A;
+}
+.torn-piece.piece-a{left:0; border-radius:6px 0 0 6px; transform-origin:right center;}
+.torn-piece.piece-b{right:0; border-radius:0 6px 6px 0; transform-origin:left center;}
+
+/* ---- Phase choreography (driven by JS via classes on #mailAnim) ---- */
+.mail-anim.phase-compose .mail-doc{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+}
+.mail-anim.phase-insert .mail-doc{
+  transform:translate(-50%,-20%) scale(0.35);
+  opacity:0;
+}
+.mail-anim.phase-insert .mail-envelope,
+.mail-anim.phase-sending .mail-envelope,
+.mail-anim.phase-success .mail-envelope,
+.mail-anim.phase-failure .mail-envelope{
+  transform:translate(-50%,-50%) scale(1);
+  opacity:1;
+}
+.mail-anim.phase-insert .env-flap-open,
+.mail-anim.phase-sending .env-flap-open,
+.mail-anim.phase-success .env-flap-open,
+.mail-anim.phase-failure .env-flap-open{opacity:0;}
+.mail-anim.phase-insert .env-flap-sealed,
+.mail-anim.phase-sending .env-flap-sealed,
+.mail-anim.phase-success .env-flap-sealed,
+.mail-anim.phase-failure .env-flap-sealed{opacity:1;}
+.mail-anim.phase-sending .env-seal,
+.mail-anim.phase-success .env-seal{opacity:1;}
+
+@keyframes mailFloat{
+  0%,100%{transform:translate(-50%,-50%) translateY(0);}
+  50%{transform:translate(-50%,-50%) translateY(-8px);}
+}
+@keyframes mailGlow{
+  0%,100%{filter:drop-shadow(0 14px 26px rgba(0,0,0,0.4)) drop-shadow(0 0 0 rgba(200,16,46,0));}
+  50%{filter:drop-shadow(0 14px 26px rgba(0,0,0,0.4)) drop-shadow(0 0 18px rgba(200,16,46,0.55));}
+}
+.mail-anim.phase-sending .mail-envelope{
+  animation:mailFloat 1.6s ease-in-out infinite, mailGlow 1.6s ease-in-out infinite;
+}
+
+@keyframes mailFlyAway{
+  0%{transform:translate(-50%,-50%) translate(0,0) scale(1) rotate(0deg); opacity:1;}
+  100%{transform:translate(-50%,-50%) translate(120px,-150px) scale(0.35) rotate(18deg); opacity:0;}
+}
+.mail-anim.phase-success .mail-envelope{
+  animation:mailFlyAway 0.9s cubic-bezier(.3,.6,.4,1) forwards;
+}
+
+@keyframes mailShake{
+  0%,100%{transform:translate(-50%,-50%) translateX(0);}
+  20%{transform:translate(-50%,-50%) translateX(-8px);}
+  40%{transform:translate(-50%,-50%) translateX(8px);}
+  60%{transform:translate(-50%,-50%) translateX(-6px);}
+  80%{transform:translate(-50%,-50%) translateX(6px);}
+}
+.mail-anim.phase-failure .mail-envelope{
+  animation:mailShake 0.4s ease-in-out 2;
+  transition:opacity 0.2s ease 0.8s;
+  opacity:0;
+}
+.mail-anim.phase-failure .mail-torn{
+  opacity:1;
+}
+@keyframes tornLeft{
+  0%{transform:rotate(0) translate(0,0); opacity:1;}
+  100%{transform:rotate(-25deg) translate(-30px,10px); opacity:0;}
+}
+@keyframes tornRight{
+  0%{transform:rotate(0) translate(0,0); opacity:1;}
+  100%{transform:rotate(25deg) translate(30px,10px); opacity:0;}
+}
+.mail-anim.phase-failure .piece-a{animation:tornLeft 0.6s ease-in 0.8s forwards;}
+.mail-anim.phase-failure .piece-b{animation:tornRight 0.6s ease-in 0.8s forwards;}
+
+/* ---- Result panels ---- */
+.submit-state{display:none;}
+.submit-state.is-active{display:block;}
+.submit-status-label{
+  color:var(--text-soft); font-size:12.5px; letter-spacing:0.08em; text-transform:uppercase;
+}
+.submit-icon{
+  width:54px; height:54px; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  margin:0 auto 18px;
+  font-size:24px; font-weight:700;
+}
+.submit-check{background:rgba(200,16,46,0.12); border:1px solid var(--crimson-bright); color:var(--crimson-bright);}
+.submit-x{background:rgba(232,169,58,0.12); border:1px solid #E8A93A; color:#E8A93A;}
+.submit-state.is-active .submit-icon{animation:submitIconPop 0.4s cubic-bezier(.2,.8,.3,1.2);}
+@keyframes submitIconPop{
+  0%{transform:scale(0.5); opacity:0;}
+  70%{transform:scale(1.08); opacity:1;}
+  100%{transform:scale(1); opacity:1;}
+}
+.submit-title{
+  font-family:'Unbounded',sans-serif; font-size:19px; font-weight:800;
+  letter-spacing:0.01em; margin-bottom:10px;
+}
+.submit-msg{color:var(--text-soft); font-size:14.5px; margin-bottom:22px;}
+.submit-overlay-btn{width:100%; justify-content:center;}
+
+/* ---- Responsive ---- */
+@media (max-width:480px){
+  .submit-panel{padding:32px 20px 26px;}
+  .mail-anim{height:120px;}
+  .mail-envelope{width:96px; height:64px;}
+  .mail-doc{width:60px; height:78px; padding:10px 8px;}
+  @keyframes mailFlyAway{
+    0%{transform:translate(-50%,-50%) translate(0,0) scale(1) rotate(0deg); opacity:1;}
+    100%{transform:translate(-50%,-50%) translate(70px,-100px) scale(0.35) rotate(18deg); opacity:0;}
+  }
+}
