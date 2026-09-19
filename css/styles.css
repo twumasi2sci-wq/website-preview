@@ -441,6 +441,41 @@
     padding:5px 10px; border-radius:999px; letter-spacing:0.04em;
   }
   .portfolio-item.hidden-item{display:none;}
+
+  /* ---------------- Collection cards (grouped portfolio projects) ----------------
+     Each card now links straight to a dedicated project page instead of opening
+     a modal, so title/category/description/CTA must be readable up front (not
+     hidden behind a hover-only overlay, since mobile has no hover state). */
+  .portfolio-item.collection-card{
+    display:flex; flex-direction:column;
+    aspect-ratio:auto; grid-column:span 1;
+    text-decoration:none; color:inherit;
+  }
+  .collection-card .p-visual{position:relative; inset:auto; aspect-ratio:4/3; overflow:hidden;}
+  .collection-card .p-badge{position:absolute; top:14px; right:14px;}
+  .collection-card .collection-overlay{
+    position:relative; inset:auto; opacity:1;
+    background:none; padding:22px;
+    display:flex; flex-direction:column; flex:1;
+  }
+  .collection-card .p-cat{margin-bottom:8px;}
+  .collection-card .p-title{
+    font-size:18px; margin-bottom:10px; line-height:1.25;
+  }
+  .collection-card .collection-desc{
+    font-family:'Inter',sans-serif; font-size:14px; line-height:1.55;
+    color:var(--text-soft);
+    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; overflow:hidden;
+    margin-bottom:18px; flex:1;
+  }
+  .collection-card .collection-cta{
+    display:inline-flex; align-items:center; gap:7px;
+    font-family:'JetBrains Mono',monospace; font-size:12.5px; letter-spacing:0.04em;
+    color:var(--crimson-bright); text-transform:uppercase;
+    transition:gap 0.25s ease;
+  }
+  .collection-card:hover .collection-cta, .collection-card:focus-visible .collection-cta{gap:11px;}
+  .collection-card:hover .p-visual img, .collection-card:focus-visible .p-visual img{transform:scale(1.06);}
   @media (max-width:900px){
     .portfolio-grid{grid-template-columns:repeat(2,1fr);}
     .portfolio-item.wide{grid-column:span 2;}
